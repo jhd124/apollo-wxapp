@@ -10,38 +10,36 @@ import { InMemoryCache } from "apollo-cache-inmemory";
 import _ from "lodash";
 
 let client = null;
-export function initGraphql(wepyRequest, version, product, enableLogging) {
+
+function fetch(url, { body, method, headers }) {
+    return new Promise((res, rej) => {
+        wx.request({
+            url,
+            data: body,
+            method,
+            header: headers,
+            dataType: "text",
+            success: res,
+            fail: rej,
+        });
+    });
+}
+
+export function initGraphql({
+    requestEndPoint,
+    enableLogging,
+    headers,
+}) {
 
     if (client) {
         throw new Error("client already set!!");
     }
-    if (!wepyRequest) {
-        throw new Error("no request func");
-    }
-    if (!product) {
-        throw new Error("productName is expected");
-    }
-    if (!version) {
-        throw new Error("version is expected");
-    }
 
-    const signatureLink = setContext(async () => {
-        const headers = generateHeader(product, version);
-        return headers;
-    });
+    const signatureLink = setContext(() => headers);
 
     const httpLink = new BatchHttpLink({
-        uri: SERVER_URL + "/graphql",
-        fetch: (url, { body, method, headers }) =>
-            wepyRequest({
-                url,
-                header: headers,
-                method,
-                data: body,
-                dataType: "text",
-            }).then(response => ({
-                text: () => Promise.resolve(response.data),
-            })),
+        uri: requestEndPoint,
+        fetch,
     });
 
     const errorLogger = onError(({ graphQLErrors, networkError }) => {

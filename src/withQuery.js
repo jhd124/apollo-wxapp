@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { getClient } from "../../js-share/graphql";
+import { getClient } from "./graphql";
 import Type from "./appType";
 
 export function withQuery(qlOptions) {
